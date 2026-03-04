@@ -31,7 +31,11 @@ export default function PatientAuthPage() {
       }
       navigate('/book');
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || error.message,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
