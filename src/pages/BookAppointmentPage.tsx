@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Calendar, Clock, LogOut, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { doctorsAPI, servicesAPI, appointmentsAPI } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,6 +44,7 @@ export default function BookAppointmentPage() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [fetchError, setFetchError] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -53,12 +54,16 @@ export default function BookAppointmentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [{ data: docs }, { data: svcs }] = await Promise.all([
-        supabase.from('doctors').select('id, first_name, last_name, specialization'),
-        supabase.from('services').select('id, name, description, price, duration_minutes'),
-      ]);
-      if (docs) setDoctors(docs);
-      if (svcs) setServices(svcs);
+      try {
+        const [docs, svcs] = await Promise.all([
+          doctorsAPI.getAll(),
+          servicesAPI.getAll(),
+        ]);
+        setDoctors(docs);
+        setServices(svcs);
+      } catch (err: any) {
+        setFetchError('Failed to load doctors and services. Is your backend running?');
+      }
     };
     fetchData();
   }, []);
@@ -71,19 +76,21 @@ export default function BookAppointmentPage() {
     setSubmitting(true);
     try {
       const scheduledAt = new Date(`${date}T${time}`).toISOString();
-      const { error } = await supabase.from('appointments').insert({
-        patient_id: user.id,
+      await appointmentsAPI.create({
         doctor_id: doctorId,
         service_id: serviceId,
         scheduled_at: scheduledAt,
         duration_minutes: selectedService?.duration_minutes ?? 30,
         notes: notes || null,
       });
-      if (error) throw error;
       setSuccess(true);
       toast({ title: 'Appointment booked!', description: 'We look forward to seeing you.' });
     } catch (error: any) {
-      toast({ title: 'Booking failed', description: error.message, variant: 'destructive' });
+      toast({
+        title: 'Booking failed',
+        description: error.response?.data?.message || error.message,
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -96,6 +103,17 @@ export default function BookAppointmentPage() {
 
   if (loading) return null;
 
+  if (fetchError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <div className="dashboard-card max-w-md w-full text-center space-y-4">
+          <p className="text-destructive font-medium">{fetchError}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -104,7 +122,7 @@ export default function BookAppointmentPage() {
             <CheckCircle className="h-8 w-8 text-success" />
           </div>
           <h2 className="text-2xl font-bold text-foreground">Appointment Booked!</h2>
-          <p className="text-muted-foreground">Your appointment has been scheduled successfully. You will receive a confirmation shortly.</p>
+          <p className="text-muted-foreground">Your appointment has been scheduled successfully.</p>
           <div className="flex gap-3 justify-center">
             <Button onClick={() => { setSuccess(false); setDoctorId(''); setServiceId(''); setDate(''); setTime(''); setNotes(''); }}>Book Another</Button>
             <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
@@ -116,7 +134,6 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
@@ -134,7 +151,6 @@ export default function BookAppointmentPage() {
         </div>
       </header>
 
-      {/* Booking Form */}
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="space-y-6 animate-fade-in">
           <div>
@@ -146,9 +162,7 @@ export default function BookAppointmentPage() {
             <div className="space-y-2">
               <Label>Doctor</Label>
               <Select value={doctorId} onValueChange={setDoctorId} required>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select a doctor" />
-                </SelectTrigger>
+                <SelectTrigger className="h-12"><SelectValue placeholder="Select a doctor" /></SelectTrigger>
                 <SelectContent>
                   {doctors.map(doc => (
                     <SelectItem key={doc.id} value={doc.id}>
@@ -162,9 +176,7 @@ export default function BookAppointmentPage() {
             <div className="space-y-2">
               <Label>Service</Label>
               <Select value={serviceId} onValueChange={setServiceId} required>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select a service" />
-                </SelectTrigger>
+                <SelectTrigger className="h-12"><SelectValue placeholder="Select a service" /></SelectTrigger>
                 <SelectContent>
                   {services.map(svc => (
                     <SelectItem key={svc.id} value={svc.id}>
@@ -177,15 +189,11 @@ export default function BookAppointmentPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" /> Date
-                </Label>
+                <Label className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> Date</Label>
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} required className="h-12" min={new Date().toISOString().split('T')[0]} />
               </div>
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" /> Time
-                </Label>
+                <Label className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /> Time</Label>
                 <Input type="time" value={time} onChange={e => setTime(e.target.value)} required className="h-12" min="08:00" max="17:00" />
               </div>
             </div>
