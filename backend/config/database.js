@@ -1,13 +1,17 @@
-const { createPool } = require('mysql');
+const { Sequelize } = require('sequelize');
+require('dotenv').config();
 
-const pool = createPool({
-    host: "localhost",
-    user: "root",
-    password: "Oshki2021*",
-    database: "polyclinic_db",
-    connectionLimit: 10
-});
+const sequelize = new Sequelize(
+  process.env.DB_NAME || 'polyclinic_db',
+  process.env.DB_USER || 'root',
+  process.env.DB_PASSWORD || '',
+  {
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    dialect: 'mysql',
+    logging: false,
+    pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
+  }
+);
 
-pool.query('select * from polyclinic_db.patients', (err, results) => {
-});
-
+module.exports = sequelize;
