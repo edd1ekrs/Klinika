@@ -39,41 +39,26 @@ const TIME_SLOTS = [
   '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
 ];
 
-export default function BookAppointmentPage() {
-  const navigate = useNavigate();
-  const { user, signOut, loading } = useAuth();
-  const { toast } = useToast();
+const SPECIALTY_GRADIENTS: Record<string, string> = {
+  Cardiology: 'from-rose-500 to-red-600',
+  Dermatology: 'from-amber-500 to-orange-600',
+  Pediatrics: 'from-emerald-500 to-teal-600',
+  Orthopedics: 'from-indigo-500 to-blue-600',
+};
 
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [doctorId, setDoctorId] = useState('');
-  const [serviceId, setServiceId] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [notes, setNotes] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [fetchError, setFetchError] = useState('');
+function specialtyGradient(s: string) {
+  return SPECIALTY_GRADIENTS[s] ?? 'from-primary to-accent';
+}
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/patient');
-    }
-  }, [user, loading, navigate]);
+function initials(d: DoctorVM) {
+  const f = d.first_name.replace(/^Dr\.?\s*/i, '').trim();
+  return (f[0] ?? '') + (d.last_name[0] ?? '');
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [docs, svcs] = await Promise.all([
-          doctorsAPI.getAll(),
-          servicesAPI.getAll(),
-        ]);
-        setDoctors(docs);
-        setServices(svcs);
-      } catch (err: any) {
-        setFetchError('Failed to load doctors and services. Is your backend running?');
-      }
-    };
+function makeReferenceId() {
+  return 'APT-' + Math.random().toString(36).slice(2, 8).toUpperCase() +
+    '-' + Date.now().toString().slice(-4);
+}
     fetchData();
   }, []);
 
