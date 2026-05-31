@@ -17,20 +17,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-interface Doctor {
+interface DoctorVM {
   id: string;
   first_name: string;
   last_name: string;
   specialization: string;
+  bio?: string | null;
+  experience_years?: number;
+  consultation_fee?: number;
+  photo_url?: string | null;
 }
-
-interface Service {
+interface ServiceVM {
   id: string;
   name: string;
-  description: string | null;
   price: number;
   duration_minutes: number;
 }
+
+const TIME_SLOTS = [
+  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+];
 
 export default function BookAppointmentPage() {
   const navigate = useNavigate();
