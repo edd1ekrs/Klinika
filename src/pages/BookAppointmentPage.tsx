@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Calendar, Clock, LogOut, CheckCircle } from 'lucide-react';
+import {
+  Activity, Calendar as CalendarIcon, Clock, LogOut, CheckCircle2,
+  Stethoscope, Award, ArrowLeft, ArrowRight, User, Eye, EyeOff, Sparkles,
+} from 'lucide-react';
+import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { doctorsAPI, servicesAPI, appointmentsAPI } from '@/services/api';
+import { mockDoctors, mockServices } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface Doctor {
   id: string;
