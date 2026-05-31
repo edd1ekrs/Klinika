@@ -59,7 +59,8 @@ function makeReferenceId() {
   return 'APT-' + Math.random().toString(36).slice(2, 8).toUpperCase() +
     '-' + Date.now().toString().slice(-4);
 }
-    type Step = 'doctor' | 'datetime' | 'confirm' | 'success';
+
+type Step = 'doctor' | 'datetime' | 'confirm' | 'success';
 
 export default function BookAppointmentPage() {
   const navigate = useNavigate();
@@ -155,83 +156,491 @@ export default function BookAppointmentPage() {
     }
   };
 
+  // After auth completes inside modal, continue booking automatically.
+  useEffect(() => {
+    if (user && authOpen) {
+      setAuthOpen(false);
+      // small delay so the dialog unmounts before submit
+      setTimeout(() => { confirmBooking(); }, 50);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const resetFlow = () => {
+    setDoctor(null); setDate(undefined); setTime(''); setNotes('');
+    setReferenceId(''); setStep('doctor');
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/40">
+      {/* Header */}
+      <header className="border-b border-border bg-card/80 backdrop-blur sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
+          <button onClick={() => navigate('/patient')} className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md group-hover:scale-105 transition-transform">
               <Activity className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground">MediClinic</span>
-          </div>
+            <div className="text-left">
+              <div className="text-lg font-bold text-foreground leading-none">MediClinic</div>
+              <div className="text-xs text-muted-foreground">Book an appointment</div>
+            </div>
+          </button>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-1" /> Sign Out
-            </Button>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {user.first_name} {user.last_name}
+                </span>
+                <Button variant="ghost" size="sm" onClick={async () => { await signOut(); }}>
+                  <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setAuthOpen(true)}>
+                <User className="h-4 w-4 mr-1" /> Sign In
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Stepper */}
+        {step !== 'success' && (
+          <div className="max-w-6xl mx-auto px-4 pb-4">
+            <Stepper step={step} />
+          </div>
+        )}
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
-        <div className="space-y-6 animate-fade-in">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Book an Appointment</h1>
-            <p className="text-muted-foreground">Select a doctor, service, and your preferred time.</p>
-          </div>
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {step === 'doctor' && (
+          <DoctorPicker
+            loading={loadingData}
+            doctors={doctors}
+            onSelect={handleSelectDoctor}
+          />
+        )}
 
-          <form onSubmit={handleSubmit} className="dashboard-card space-y-6">
-            <div className="space-y-2">
-              <Label>Doctor</Label>
-              <Select value={doctorId} onValueChange={setDoctorId} required>
-                <SelectTrigger className="h-12"><SelectValue placeholder="Select a doctor" /></SelectTrigger>
-                <SelectContent>
-                  {doctors.map(doc => (
-                    <SelectItem key={doc.id} value={doc.id}>
-                      Dr. {doc.first_name} {doc.last_name} — {doc.specialization}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {step === 'datetime' && doctor && (
+          <DateTimePicker
+            doctor={doctor}
+            date={date}
+            time={time}
+            onDateChange={setDate}
+            onTimeChange={setTime}
+            onBack={() => setStep('doctor')}
+            onNext={handleProceedFromDateTime}
+          />
+        )}
 
-            <div className="space-y-2">
-              <Label>Service</Label>
-              <Select value={serviceId} onValueChange={setServiceId} required>
-                <SelectTrigger className="h-12"><SelectValue placeholder="Select a service" /></SelectTrigger>
-                <SelectContent>
-                  {services.map(svc => (
-                    <SelectItem key={svc.id} value={svc.id}>
-                      {svc.name} — ${svc.price} ({svc.duration_minutes} min)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {step === 'confirm' && doctor && date && time && (
+          <ConfirmStep
+            doctor={doctor}
+            date={date}
+            time={time}
+            notes={notes}
+            onNotes={setNotes}
+            service={defaultService}
+            submitting={submitting}
+            onBack={() => setStep('datetime')}
+            onConfirm={confirmBooking}
+            isAuthed={!!user}
+          />
+        )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> Date</Label>
-                <Input type="date" value={date} onChange={e => setDate(e.target.value)} required className="h-12" min={new Date().toISOString().split('T')[0]} />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /> Time</Label>
-                <Input type="time" value={time} onChange={e => setTime(e.target.value)} required className="h-12" min="08:00" max="17:00" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Notes (Optional)</Label>
-              <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any symptoms or special requests..." className="h-12" />
-            </div>
-
-            <Button type="submit" className="w-full h-12 text-base" disabled={submitting || !doctorId || !serviceId || !date || !time}>
-              {submitting ? 'Booking...' : 'Book Appointment'}
-            </Button>
-          </form>
-        </div>
+        {step === 'success' && doctor && date && time && (
+          <SuccessStep
+            referenceId={referenceId}
+            doctor={doctor}
+            date={date}
+            time={time}
+            onBookAnother={resetFlow}
+          />
+        )}
       </main>
+
+      <AuthModal
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        signIn={signIn}
+        signUp={signUp}
+      />
     </div>
+  );
+}
+
+/* ───────── Stepper ───────── */
+function Stepper({ step }: { step: Step }) {
+  const steps: { id: Step; label: string }[] = [
+    { id: 'doctor', label: 'Doctor' },
+    { id: 'datetime', label: 'Date & Time' },
+    { id: 'confirm', label: 'Confirm' },
+  ];
+  const activeIdx = steps.findIndex(s => s.id === step);
+  return (
+    <ol className="flex items-center gap-2 sm:gap-4">
+      {steps.map((s, i) => {
+        const done = i < activeIdx;
+        const active = i === activeIdx;
+        return (
+          <li key={s.id} className="flex items-center gap-2 sm:gap-4 flex-1">
+            <div className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold border transition-colors',
+              done && 'bg-success text-success-foreground border-success',
+              active && 'bg-primary text-primary-foreground border-primary shadow-md',
+              !done && !active && 'bg-muted text-muted-foreground border-border',
+            )}>
+              {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+            </div>
+            <span className={cn(
+              'text-sm font-medium hidden sm:inline',
+              active ? 'text-foreground' : 'text-muted-foreground',
+            )}>{s.label}</span>
+            {i < steps.length - 1 && (
+              <div className={cn('h-px flex-1', done ? 'bg-success' : 'bg-border')} />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/* ───────── Step 1: doctor cards ───────── */
+function DoctorPicker({
+  loading, doctors, onSelect,
+}: { loading: boolean; doctors: DoctorVM[]; onSelect: (d: DoctorVM) => void }) {
+  return (
+    <section className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Choose your doctor</h1>
+        <p className="text-muted-foreground mt-1">Browse our specialists and pick the right one for you.</p>
+      </div>
+
+      {loading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-64 rounded-2xl bg-muted/60 animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {doctors.map(d => (
+            <button
+              key={d.id}
+              onClick={() => onSelect(d)}
+              className="group text-left rounded-2xl border border-border bg-card hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+            >
+              <div className={cn(
+                'h-28 bg-gradient-to-br relative flex items-end p-4',
+                specialtyGradient(d.specialization),
+              )}>
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-white/20 text-white border-0 backdrop-blur">
+                    <Stethoscope className="h-3 w-3 mr-1" />{d.specialization}
+                  </Badge>
+                </div>
+                <div className="h-20 w-20 rounded-full bg-card border-4 border-card shadow-md -mb-10 flex items-center justify-center text-2xl font-bold text-foreground">
+                  {initials(d)}
+                </div>
+              </div>
+              <div className="pt-12 p-5 space-y-3">
+                <div>
+                  <div className="font-semibold text-lg text-foreground">
+                    {d.first_name.startsWith('Dr') ? d.first_name : `Dr. ${d.first_name}`} {d.last_name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{d.specialization} Specialist</div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                  {d.bio ?? 'Trusted specialist providing comprehensive medical care.'}
+                </p>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Award className="h-4 w-4 text-accent" />
+                    <span>{d.experience_years ?? 10}+ yrs experience</span>
+                  </div>
+                  <span className="text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
+                    Select →
+                  </span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ───────── Step 2: date + time ───────── */
+function DateTimePicker({
+  doctor, date, time, onDateChange, onTimeChange, onBack, onNext,
+}: {
+  doctor: DoctorVM; date?: Date; time: string;
+  onDateChange: (d: Date | undefined) => void;
+  onTimeChange: (t: string) => void;
+  onBack: () => void; onNext: () => void;
+}) {
+  return (
+    <section className="space-y-6 animate-fade-in">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Pick a date & time</h1>
+          <p className="text-muted-foreground mt-1">
+            Booking with <strong>Dr. {doctor.last_name}</strong> — {doctor.specialization}
+          </p>
+        </div>
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Change doctor
+        </Button>
+      </div>
+
+      <div className="grid lg:grid-cols-[auto_1fr] gap-6">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={onDateChange}
+            disabled={(d) => {
+              const today = new Date(); today.setHours(0, 0, 0, 0);
+              return d < today || d.getDay() === 0;
+            }}
+            initialFocus
+            className={cn('p-3 pointer-events-auto')}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-primary" />
+            <h2 className="font-semibold text-foreground">Available time slots</h2>
+          </div>
+          {!date ? (
+            <div className="text-sm text-muted-foreground py-12 text-center">
+              Select a date to see available slots.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {TIME_SLOTS.map(slot => (
+                <button
+                  key={slot}
+                  onClick={() => onTimeChange(slot)}
+                  className={cn(
+                    'h-11 rounded-lg text-sm font-medium border transition-colors',
+                    time === slot
+                      ? 'bg-primary text-primary-foreground border-primary shadow'
+                      : 'bg-background border-border hover:border-primary hover:text-primary',
+                  )}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-8 flex justify-end">
+            <Button size="lg" onClick={onNext} disabled={!date || !time}>
+              Continue <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── Step 3: confirm ───────── */
+function ConfirmStep({
+  doctor, date, time, notes, onNotes, service, submitting, onBack, onConfirm, isAuthed,
+}: {
+  doctor: DoctorVM; date: Date; time: string; notes: string;
+  onNotes: (s: string) => void;
+  service?: ServiceVM; submitting: boolean;
+  onBack: () => void; onConfirm: () => void; isAuthed: boolean;
+}) {
+  return (
+    <section className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Review & confirm</h1>
+        <p className="text-muted-foreground mt-1">Double-check the details below before confirming.</p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className={cn('p-5 bg-gradient-to-br text-white', specialtyGradient(doctor.specialization))}>
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-lg font-bold backdrop-blur">
+              {initials(doctor)}
+            </div>
+            <div>
+              <div className="font-semibold text-lg">
+                {doctor.first_name.startsWith('Dr') ? doctor.first_name : `Dr. ${doctor.first_name}`} {doctor.last_name}
+              </div>
+              <div className="text-sm text-white/90">{doctor.specialization}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 divide-y divide-border">
+          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={format(date, 'EEEE, MMMM d, yyyy')} />
+          <Row icon={<Clock className="h-4 w-4" />} label="Time" value={time} />
+          {service && <Row icon={<Sparkles className="h-4 w-4" />} label="Service" value={`${service.name} · ${service.duration_minutes} min · $${service.price}`} />}
+        </div>
+
+        <div className="p-5 border-t border-border space-y-2">
+          <Label htmlFor="notes">Notes for the doctor (optional)</Label>
+          <Input
+            id="notes"
+            value={notes}
+            onChange={e => onNotes(e.target.value)}
+            placeholder="Any symptoms or special requests…"
+            className="h-11"
+          />
+        </div>
+      </div>
+
+      {!isAuthed && (
+        <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground">
+          You’ll be asked to sign in or create an account before we can confirm this booking.
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </Button>
+        <Button size="lg" onClick={onConfirm} disabled={submitting}>
+          {submitting ? 'Confirming…' : isAuthed ? 'Confirm booking' : 'Sign in & confirm'}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-3">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground">{icon}{label}</span>
+      <span className="text-sm font-medium text-foreground text-right">{value}</span>
+    </div>
+  );
+}
+
+/* ───────── Step 4: success ───────── */
+function SuccessStep({
+  referenceId, doctor, date, time, onBookAnother,
+}: {
+  referenceId: string; doctor: DoctorVM; date: Date; time: string; onBookAnother: () => void;
+}) {
+  return (
+    <section className="max-w-xl mx-auto text-center space-y-6 animate-fade-in">
+      <div className="mx-auto h-20 w-20 rounded-full bg-success/10 flex items-center justify-center">
+        <CheckCircle2 className="h-12 w-12 text-success" />
+      </div>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Appointment confirmed!</h1>
+        <p className="text-muted-foreground mt-2">
+          A confirmation has been recorded. Please arrive 10 minutes before your appointment.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm text-left space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">Reference ID</span>
+          <code className="px-2 py-1 rounded bg-muted text-sm font-mono">{referenceId}</code>
+        </div>
+        <div className="divide-y divide-border">
+          <Row icon={<Stethoscope className="h-4 w-4" />} label="Doctor"
+            value={`${doctor.first_name.startsWith('Dr') ? doctor.first_name : `Dr. ${doctor.first_name}`} ${doctor.last_name} · ${doctor.specialization}`} />
+          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={format(date, 'EEEE, MMMM d, yyyy')} />
+          <Row icon={<Clock className="h-4 w-4" />} label="Time" value={time} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-3">
+        <Button variant="outline" onClick={onBookAnother}>Book another</Button>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── Auth modal ───────── */
+function AuthModal({
+  open, onOpenChange, signIn, signUp,
+}: {
+  open: boolean; onOpenChange: (b: boolean) => void;
+  signIn: (e: string, p: string) => Promise<void>;
+  signUp: (e: string, p: string, f: string, l: string) => Promise<void>;
+}) {
+  const { toast } = useToast();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState(''); const [lastName, setLastName] = useState('');
+  const [show, setShow] = useState(false); const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (mode === 'signin') await signIn(email, password);
+      else await signUp(email, password, firstName, lastName);
+      toast({ title: mode === 'signin' ? 'Welcome back!' : 'Account created!' });
+    } catch (err: any) {
+      toast({
+        title: 'Authentication failed',
+        description: err?.response?.data?.message || err?.message || 'Please try again',
+        variant: 'destructive',
+      });
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{mode === 'signin' ? 'Sign in to confirm' : 'Create your account'}</DialogTitle>
+          <DialogDescription>
+            We just need to verify who you are. Your booking will continue automatically.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
+          {mode === 'signup' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="fn">First name</Label>
+                <Input id="fn" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ln">Last name</Label>
+                <Input id="ln" value={lastName} onChange={e => setLastName(e.target.value)} required />
+              </div>
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label htmlFor="em">Email</Label>
+            <Input id="em" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pw">Password</Label>
+            <div className="relative">
+              <Input id="pw" type={show ? 'text' : 'password'} value={password}
+                onChange={e => setPassword(e.target.value)} required className="pr-10" />
+              <button type="button" onClick={() => setShow(s => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in & continue' : 'Create account & continue'}
+          </Button>
+        </form>
+        <p className="text-sm text-center text-muted-foreground">
+          {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
+          <button onClick={() => setMode(m => m === 'signin' ? 'signup' : 'signin')}
+            className="text-primary hover:underline font-medium">
+            {mode === 'signin' ? 'Sign up' : 'Sign in'}
+          </button>
+        </p>
+      </DialogContent>
+    </Dialog>
   );
 }
