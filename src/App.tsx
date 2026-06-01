@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import PatientAuthPage from "./pages/PatientAuthPage";
@@ -27,7 +28,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Navigate to="/patient" replace />} />
+            <Route path="/" element={<Navigate to="/book" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/patient" element={<PatientAuthPage />} />
             <Route path="/book" element={<BookAppointmentPage />} />
