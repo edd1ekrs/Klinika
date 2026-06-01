@@ -23,16 +23,23 @@ export default function PatientAuthPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      let role: string = 'patient';
       if (isSignUp) {
         await signUp(email, password, firstName, lastName);
-        toast({ title: 'Account created!', description: 'You can now book appointments.' });
+        toast({ title: 'Llogaria u krijua!', description: 'Tani mund të rezervoni terminet tuaja.' });
       } else {
-        await signIn(email, password);
+        const u = await signIn(email, password);
+        role = u.role;
       }
-      navigate('/book');
+      // Role-based redirect: staff roles go to the admin dashboard, patients to booking.
+      if (['admin', 'doctor', 'staff'].includes(role)) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/book', { replace: true });
+      }
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: 'Gabim',
         description: error.response?.data?.message || error.message,
         variant: 'destructive',
       });
@@ -50,16 +57,16 @@ export default function PatientAuthPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">MediClinic</h1>
-            <p className="text-sm text-muted-foreground">Patient Portal</p>
+            <p className="text-sm text-muted-foreground">Portali i Pacientit</p>
           </div>
         </div>
 
         <div className="text-center">
           <h2 className="text-3xl font-bold text-foreground">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isSignUp ? 'Krijo Llogari' : 'Mirë se vini'}
           </h2>
           <p className="mt-2 text-muted-foreground">
-            {isSignUp ? 'Sign up to book appointments' : 'Sign in to manage your appointments'}
+            {isSignUp ? 'Bëni Signup për të rezervuar termine' : 'Bëni Login për të menaxhuar terminet tuaja'}
           </p>
         </div>
 
@@ -67,21 +74,21 @@ export default function PatientAuthPage() {
           {isSignUp && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required className="h-12" placeholder="John" />
+                <Label htmlFor="firstName">Emri</Label>
+                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required className="h-12" placeholder="Ardit" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required className="h-12" placeholder="Doe" />
+                <Label htmlFor="lastName">Mbiemri</Label>
+                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required className="h-12" placeholder="Krasniqi" />
               </div>
             </div>
           )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required className="h-12" placeholder="you@example.com" />
+            <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required className="h-12" placeholder="ju@shembull.com" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Fjalëkalimi</Label>
             <div className="relative">
               <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required className="h-12 pr-12" placeholder="••••••••" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -90,19 +97,19 @@ export default function PatientAuthPage() {
             </div>
           </div>
           <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
-            {isLoading ? (isSignUp ? 'Creating account...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign In')}
+            {isLoading ? (isSignUp ? 'Duke krijuar llogarinë…' : 'Duke bërë Login…') : (isSignUp ? 'Signup' : 'Login')}
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+          {isSignUp ? 'Keni tashmë një llogari?' : 'Nuk keni llogari?'}{' '}
           <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
-            {isSignUp ? 'Sign in' : 'Sign up'}
+            {isSignUp ? 'Login' : 'Signup'}
           </button>
         </p>
 
         <p className="text-center text-xs text-muted-foreground">
-          <button onClick={() => navigate('/login')} className="hover:underline">Staff login →</button>
+          <button onClick={() => navigate('/login')} className="hover:underline">Login për stafin →</button>
         </p>
       </div>
     </div>

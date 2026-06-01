@@ -42,7 +42,7 @@ export function StatsCard({ title, value, icon: Icon, trend, subtitle, variant =
               <span className={cn('text-sm font-medium', isGradient ? '' : trend.isPositive ? 'text-success' : 'text-destructive')}>
                 {trend.isPositive ? '+' : ''}{trend.value}%
               </span>
-              <span className={cn('text-sm', isGradient ? 'opacity-75' : 'text-muted-foreground')}>vs last month</span>
+              <span className={cn('text-sm', isGradient ? 'opacity-75' : 'text-muted-foreground')}>krahasuar me muajin e kaluar</span>
             </div>
           )}
           {subtitle && (

@@ -23,16 +23,25 @@ const statusStyles: Record<string, string> = {
   'no-show': 'badge-destructive',
 };
 
+const statusLabels: Record<string, string> = {
+  scheduled: 'I planifikuar',
+  confirmed: 'I konfirmuar',
+  'in-progress': 'Në vazhdim',
+  completed: 'I përfunduar',
+  cancelled: 'I anuluar',
+  'no-show': 'Nuk u paraqit',
+};
+
 export function RecentAppointments({ appointments }: RecentAppointmentsProps) {
   return (
     <div className="dashboard-card">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Recent Appointments</h3>
-          <p className="text-sm text-muted-foreground">Latest scheduled visits</p>
+          <h3 className="text-lg font-semibold text-foreground">Terminet e Fundit</h3>
+          <p className="text-sm text-muted-foreground">Vizitat më të reja të planifikuara</p>
         </div>
         <Button variant="outline" size="sm">
-          View All
+          Shiko të gjitha
         </Button>
       </div>
       <div className="space-y-4">
@@ -63,10 +72,10 @@ export function RecentAppointments({ appointments }: RecentAppointmentsProps) {
               <div className="text-right">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
-                  {format(new Date(appointment.scheduledAt), 'MMM d, h:mm a')}
+                  {format(new Date(appointment.scheduledAt), 'd MMM, HH:mm')}
                 </div>
                 <span className={statusStyles[appointment.status]}>
-                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                  {statusLabels[appointment.status] ?? appointment.status}
                 </span>
               </div>
               <DropdownMenu>
@@ -76,9 +85,9 @@ export function RecentAppointments({ appointments }: RecentAppointmentsProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                  <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">Cancel</DropdownMenuItem>
+                  <DropdownMenuItem>Shiko detajet</DropdownMenuItem>
+                  <DropdownMenuItem>Riplanifiko</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">Anulo</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

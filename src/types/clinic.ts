@@ -1,12 +1,14 @@
 // Medical Clinic Management System - Type Definitions
 // These types mirror the database schema structure
 
+export type Role = 'admin' | 'doctor' | 'staff' | 'patient';
+
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'doctor' | 'staff';
+  role: Role;
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +30,40 @@ export interface Patient {
   updatedAt: Date;
 }
 
+export type AvailabilityStatus = 'available' | 'busy' | 'offline';
+
+export interface WorkingSchedule {
+  // e.g. "Hënë": [{ start: "09:00", end: "13:00" }]
+  day: string;
+  slots: { start: string; end: string }[];
+}
+
+export interface DoctorEducation {
+  degree: string;
+  institution: string;
+  year: number;
+}
+
+export interface DoctorCertification {
+  name: string;
+  issuer: string;
+  year: number;
+}
+
+export interface PatientReview {
+  id: string;
+  patientName: string;
+  rating: number; // 1-5
+  comment: string;
+  date: string;
+}
+
+export interface DoctorMetrics {
+  patientsTreated: number;
+  appointmentsScheduled: number;
+  averageRating: number; // 0-5
+}
+
 export interface Doctor {
   id: string;
   userId: string;
@@ -41,6 +77,16 @@ export interface Doctor {
   bio?: string;
   consultationFee: number;
   isAvailable: boolean;
+
+  // Newly required structured fields
+  experienceYears?: number;
+  availabilityStatus?: AvailabilityStatus;
+  workingSchedule?: WorkingSchedule[];
+  education?: DoctorEducation[];
+  certifications?: DoctorCertification[];
+  reviews?: PatientReview[];
+  metrics?: DoctorMetrics;
+
   createdAt: Date;
   updatedAt: Date;
 }

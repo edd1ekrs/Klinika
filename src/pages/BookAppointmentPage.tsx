@@ -121,7 +121,7 @@ export default function BookAppointmentPage() {
 
   const handleProceedFromDateTime = () => {
     if (!date || !time) {
-      toast({ title: 'Pick a date and time', variant: 'destructive' });
+      toast({ title: 'Zgjidh datën dhe orën', variant: 'destructive' });
       return;
     }
     setStep('confirm');
@@ -150,7 +150,7 @@ export default function BookAppointmentPage() {
       setReferenceId(makeReferenceId());
       setStep('success');
     } catch (e: any) {
-      toast({ title: 'Booking failed', description: e?.message, variant: 'destructive' });
+      toast({ title: 'Rezervimi dështoi', description: e?.message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -181,8 +181,8 @@ export default function BookAppointmentPage() {
               <Activity className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="text-left">
-              <div className="text-lg font-bold text-foreground leading-none">Klinika</div>
-              <div className="text-xs text-muted-foreground">Book an appointment</div>
+              <div className="text-lg font-bold text-foreground leading-none">MediClinic</div>
+              <div className="text-xs text-muted-foreground">Rezervo një termin</div>
             </div>
           </button>
           <div className="flex items-center gap-3">
@@ -192,12 +192,12 @@ export default function BookAppointmentPage() {
                   {user.first_name} {user.last_name}
                 </span>
                 <Button variant="ghost" size="sm" onClick={async () => { await signOut(); }}>
-                  <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                  <LogOut className="h-4 w-4 mr-1" /> Dil
                 </Button>
               </>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setAuthOpen(true)}>
-                <User className="h-4 w-4 mr-1" /> Sign In
+                <User className="h-4 w-4 mr-1" /> Login
               </Button>
             )}
           </div>
@@ -271,9 +271,9 @@ export default function BookAppointmentPage() {
 /* ───────── Stepper ───────── */
 function Stepper({ step }: { step: Step }) {
   const steps: { id: Step; label: string }[] = [
-    { id: 'doctor', label: 'Doctor' },
-    { id: 'datetime', label: 'Date & Time' },
-    { id: 'confirm', label: 'Confirm' },
+    { id: 'doctor', label: 'Mjeku' },
+    { id: 'datetime', label: 'Data & Ora' },
+    { id: 'confirm', label: 'Konfirmo' },
   ];
   const activeIdx = steps.findIndex(s => s.id === step);
   return (
@@ -312,8 +312,8 @@ function DoctorPicker({
   return (
     <section className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Choose your doctor</h1>
-        <p className="text-muted-foreground mt-1">Browse our specialists and pick the right one for you.</p>
+        <h1 className="text-3xl font-bold text-foreground">Zgjedh mjekun</h1>
+        <p className="text-muted-foreground mt-1">Shfleto specialistët tanë dhe zgjedh atë që ju përshtatet.</p>
       </div>
 
       {loading ? (
@@ -348,18 +348,18 @@ function DoctorPicker({
                   <div className="font-semibold text-lg text-foreground">
                     {d.first_name.startsWith('Dr') ? d.first_name : `Dr. ${d.first_name}`} {d.last_name}
                   </div>
-                  <div className="text-sm text-muted-foreground">{d.specialization} Specialist</div>
+                  <div className="text-sm text-muted-foreground">Specialist në {d.specialization}</div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                  {d.bio ?? 'Trusted specialist providing comprehensive medical care.'}
+                  {d.bio ?? 'Specialist i besueshëm që ofron kujdes mjekësor gjithëpërfshirës.'}
                 </p>
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Award className="h-4 w-4 text-accent" />
-                    <span>{d.experience_years ?? 10}+ yrs experience</span>
+                    <span>{d.experience_years ?? 10}+ vite përvojë</span>
                   </div>
                   <span className="text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
-                    Select →
+                    Zgjedh →
                   </span>
                 </div>
               </div>
@@ -384,13 +384,13 @@ function DateTimePicker({
     <section className="space-y-6 animate-fade-in">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Pick a date & time</h1>
+          <h1 className="text-3xl font-bold text-foreground">Zgjedh datën dhe orën</h1>
           <p className="text-muted-foreground mt-1">
-            Booking with <strong>Dr. {doctor.last_name}</strong> — {doctor.specialization}
+            Po rezervoni te <strong>Dr. {doctor.last_name}</strong> — {doctor.specialization}
           </p>
         </div>
         <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Change doctor
+          <ArrowLeft className="h-4 w-4 mr-1" /> Ndrysho mjekun
         </Button>
       </div>
 
@@ -412,11 +412,11 @@ function DateTimePicker({
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="h-5 w-5 text-primary" />
-            <h2 className="font-semibold text-foreground">Available time slots</h2>
+            <h2 className="font-semibold text-foreground">Oraret e disponueshme</h2>
           </div>
           {!date ? (
             <div className="text-sm text-muted-foreground py-12 text-center">
-              Select a date to see available slots.
+              Zgjedh një datë për të parë oraret e disponueshme.
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -439,7 +439,7 @@ function DateTimePicker({
 
           <div className="mt-8 flex justify-end">
             <Button size="lg" onClick={onNext} disabled={!date || !time}>
-              Continue <ArrowRight className="h-4 w-4 ml-1" />
+              Vazhdo <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>
@@ -460,8 +460,8 @@ function ConfirmStep({
   return (
     <section className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Review & confirm</h1>
-        <p className="text-muted-foreground mt-1">Double-check the details below before confirming.</p>
+        <h1 className="text-3xl font-bold text-foreground">Rishiko & konfirmo</h1>
+        <p className="text-muted-foreground mt-1">Verifiko detajet më poshtë para se të konfirmosh.</p>
       </div>
 
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
@@ -480,18 +480,18 @@ function ConfirmStep({
         </div>
 
         <div className="p-5 divide-y divide-border">
-          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={format(date, 'EEEE, MMMM d, yyyy')} />
-          <Row icon={<Clock className="h-4 w-4" />} label="Time" value={time} />
-          {service && <Row icon={<Sparkles className="h-4 w-4" />} label="Service" value={`${service.name} · ${service.duration_minutes} min · $${service.price}`} />}
+          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Data" value={format(date, 'EEEE, d MMMM yyyy')} />
+          <Row icon={<Clock className="h-4 w-4" />} label="Ora" value={time} />
+          {service && <Row icon={<Sparkles className="h-4 w-4" />} label="Shërbimi" value={`${service.name} · ${service.duration_minutes} min · €${service.price}`} />}
         </div>
 
         <div className="p-5 border-t border-border space-y-2">
-          <Label htmlFor="notes">Notes for the doctor (optional)</Label>
+          <Label htmlFor="notes">Shënime për mjekun (opsionale)</Label>
           <Input
             id="notes"
             value={notes}
             onChange={e => onNotes(e.target.value)}
-            placeholder="Any symptoms or special requests…"
+            placeholder="Simptoma ose kërkesa të veçanta…"
             className="h-11"
           />
         </div>
@@ -499,16 +499,16 @@ function ConfirmStep({
 
       {!isAuthed && (
         <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground">
-          You’ll be asked to sign in or create an account before we can confirm this booking.
+          Ju do të kërkohet të bëni Login ose Signup para se të konfirmojmë këtë rezervim.
         </div>
       )}
 
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> Mbrapa
         </Button>
         <Button size="lg" onClick={onConfirm} disabled={submitting}>
-          {submitting ? 'Confirming…' : isAuthed ? 'Confirm booking' : 'Sign in & confirm'}
+          {submitting ? 'Duke konfirmuar…' : isAuthed ? 'Konfirmo rezervimin' : 'Login & konfirmo'}
         </Button>
       </div>
     </section>
@@ -536,27 +536,27 @@ function SuccessStep({
         <CheckCircle2 className="h-12 w-12 text-success" />
       </div>
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Appointment confirmed!</h1>
+        <h1 className="text-3xl font-bold text-foreground">Termini u konfirmua!</h1>
         <p className="text-muted-foreground mt-2">
-          A confirmation has been recorded. Please arrive 10 minutes before your appointment.
+          Konfirmimi është regjistruar. Ju lutemi paraqituni 10 minuta para terminit.
         </p>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm text-left space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">Reference ID</span>
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">ID e Referencës</span>
           <code className="px-2 py-1 rounded bg-muted text-sm font-mono">{referenceId}</code>
         </div>
         <div className="divide-y divide-border">
-          <Row icon={<Stethoscope className="h-4 w-4" />} label="Doctor"
+          <Row icon={<Stethoscope className="h-4 w-4" />} label="Mjeku"
             value={`${doctor.first_name.startsWith('Dr') ? doctor.first_name : `Dr. ${doctor.first_name}`} ${doctor.last_name} · ${doctor.specialization}`} />
-          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={format(date, 'EEEE, MMMM d, yyyy')} />
-          <Row icon={<Clock className="h-4 w-4" />} label="Time" value={time} />
+          <Row icon={<CalendarIcon className="h-4 w-4" />} label="Data" value={format(date, 'EEEE, d MMMM yyyy')} />
+          <Row icon={<Clock className="h-4 w-4" />} label="Ora" value={time} />
         </div>
       </div>
 
       <div className="flex items-center justify-center gap-3">
-        <Button variant="outline" onClick={onBookAnother}>Book another</Button>
+        <Button variant="outline" onClick={onBookAnother}>Rezervo një tjetër</Button>
       </div>
     </section>
   );
@@ -567,7 +567,7 @@ function AuthModal({
   open, onOpenChange, signIn, signUp,
 }: {
   open: boolean; onOpenChange: (b: boolean) => void;
-  signIn: (e: string, p: string) => Promise<void>;
+  signIn: (e: string, p: string) => Promise<unknown>;
   signUp: (e: string, p: string, f: string, l: string) => Promise<void>;
 }) {
   const { toast } = useToast();
@@ -582,11 +582,11 @@ function AuthModal({
     try {
       if (mode === 'signin') await signIn(email, password);
       else await signUp(email, password, firstName, lastName);
-      toast({ title: mode === 'signin' ? 'Welcome back!' : 'Account created!' });
+      toast({ title: mode === 'signin' ? 'Mirë se vini!' : 'Llogaria u krijua!' });
     } catch (err: any) {
       toast({
-        title: 'Authentication failed',
-        description: err?.response?.data?.message || err?.message || 'Please try again',
+        title: 'Autentikimi dështoi',
+        description: err?.response?.data?.message || err?.message || 'Provo përsëri',
         variant: 'destructive',
       });
     } finally { setLoading(false); }
@@ -596,20 +596,20 @@ function AuthModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{mode === 'signin' ? 'Sign in to confirm' : 'Create your account'}</DialogTitle>
+          <DialogTitle>{mode === 'signin' ? 'Login për të konfirmuar' : 'Krijo llogarinë tënde'}</DialogTitle>
           <DialogDescription>
-            We just need to verify who you are. Your booking will continue automatically.
+            Na duhet vetëm të verifikojmë identitetin tuaj. Rezervimi do të vazhdojë automatikisht.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           {mode === 'signup' && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="fn">First name</Label>
+                <Label htmlFor="fn">Emri</Label>
                 <Input id="fn" value={firstName} onChange={e => setFirstName(e.target.value)} required />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ln">Last name</Label>
+                <Label htmlFor="ln">Mbiemri</Label>
                 <Input id="ln" value={lastName} onChange={e => setLastName(e.target.value)} required />
               </div>
             </div>
@@ -619,7 +619,7 @@ function AuthModal({
             <Input id="em" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pw">Password</Label>
+            <Label htmlFor="pw">Fjalëkalimi</Label>
             <div className="relative">
               <Input id="pw" type={show ? 'text' : 'password'} value={password}
                 onChange={e => setPassword(e.target.value)} required className="pr-10" />
@@ -630,14 +630,14 @@ function AuthModal({
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in & continue' : 'Create account & continue'}
+            {loading ? 'Ju lutemi prisni…' : mode === 'signin' ? 'Login & vazhdo' : 'Signup & vazhdo'}
           </Button>
         </form>
         <p className="text-sm text-center text-muted-foreground">
-          {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
+          {mode === 'signin' ? 'Nuk keni llogari?' : 'Keni tashmë llogari?'}{' '}
           <button onClick={() => setMode(m => m === 'signin' ? 'signup' : 'signin')}
             className="text-primary hover:underline font-medium">
-            {mode === 'signin' ? 'Sign up' : 'Sign in'}
+            {mode === 'signin' ? 'Signup' : 'Login'}
           </button>
         </p>
       </DialogContent>

@@ -17,20 +17,11 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
   );
 }
 
-export function PaymentsPage() {
-  return (
-    <PlaceholderPage
-      title="Payments"
-      description="Payment processing and billing management will be available here. Track transactions, generate invoices, and manage insurance claims."
-    />
-  );
-}
-
 export function MedicalRecordsPage() {
   return (
     <PlaceholderPage
-      title="Medical Records"
-      description="Access and manage patient medical records securely. View diagnoses, prescriptions, and treatment history."
+      title="Dosjet Mjekësore"
+      description="Qasja dhe menaxhimi i dosjeve mjekësore të pacientëve në mënyrë të sigurt. Shikoni diagnozat, recetat dhe historikun e trajtimit."
     />
   );
 }
@@ -38,8 +29,8 @@ export function MedicalRecordsPage() {
 export function SettingsPage() {
   return (
     <PlaceholderPage
-      title="Settings"
-      description="Configure system settings, user preferences, and clinic information. Manage roles and permissions."
+      title="Cilësimet"
+      description="Konfiguro cilësimet e sistemit, preferencat dhe informatat e poliklinikës. Menaxho rolet dhe lejet."
     />
   );
 }

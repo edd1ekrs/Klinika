@@ -5,7 +5,6 @@ import {
   UserCog,
   Calendar,
   Stethoscope,
-  CreditCard,
   FileText,
   Settings,
   ChevronLeft,
@@ -13,24 +12,36 @@ import {
   Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Role } from '@/types/clinic';
 
 interface DashboardSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/dashboard/patients', icon: Users, label: 'Patients' },
-  { to: '/dashboard/doctors', icon: UserCog, label: 'Doctors' },
-  { to: '/dashboard/appointments', icon: Calendar, label: 'Appointments' },
-  { to: '/dashboard/services', icon: Stethoscope, label: 'Services' },
-  
-  { to: '/dashboard/records', icon: FileText, label: 'Medical Records' },
-  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+interface NavItem {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  end?: boolean;
+  allowed: Role[];
+}
+
+const navItems: NavItem[] = [
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Paneli', end: true, allowed: ['admin', 'doctor', 'staff'] },
+  { to: '/dashboard/patients', icon: Users, label: 'Pacientët', allowed: ['admin', 'doctor', 'staff'] },
+  { to: '/dashboard/doctors', icon: UserCog, label: 'Mjekët', allowed: ['admin'] },
+  { to: '/dashboard/appointments', icon: Calendar, label: 'Terminet', allowed: ['admin', 'doctor', 'staff'] },
+  { to: '/dashboard/services', icon: Stethoscope, label: 'Shërbimet', allowed: ['admin'] },
+  { to: '/dashboard/records', icon: FileText, label: 'Dosjet Mjekësore', allowed: ['admin', 'doctor'] },
+  { to: '/dashboard/settings', icon: Settings, label: 'Cilësimet', allowed: ['admin'] },
 ];
 
 export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps) {
+  const { user } = useAuth();
+  const visibleItems = navItems.filter((i) => !user || i.allowed.includes(user.role));
+
   return (
     <aside
       className={cn(
@@ -38,7 +49,6 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
         collapsed ? 'w-16' : 'w-64'
       )}
     >
-      {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
@@ -47,7 +57,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
           {!collapsed && (
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-sidebar-foreground">MediClinic</span>
-              <span className="text-xs text-sidebar-foreground/60">Management System</span>
+              <span className="text-xs text-sidebar-foreground/60">Sistemi i Menaxhimit</span>
             </div>
           )}
         </div>
@@ -59,9 +69,8 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex flex-col gap-1 p-3">
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -81,12 +90,11 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
         ))}
       </nav>
 
-      {/* Footer */}
       {!collapsed && (
         <div className="absolute bottom-4 left-4 right-4">
           <div className="rounded-lg bg-sidebar-accent p-4">
             <p className="text-xs text-sidebar-foreground/70">
-              Clinic Management v1.0
+              Menaxhimi i Poliklinikës v1.0
             </p>
             <p className="mt-1 text-xs text-sidebar-foreground/50">
               © 2025 MediClinic

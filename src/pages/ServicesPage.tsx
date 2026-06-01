@@ -1,13 +1,10 @@
 import { mockServices } from '@/data/mockData';
-import { Search, Plus, MoreHorizontal, Clock, DollarSign } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Clock, Euro } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 export default function ServicesPage() {
@@ -20,25 +17,23 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Services</h1>
-          <p className="text-muted-foreground">Manage clinic services and pricing</p>
+          <h1 className="text-2xl font-bold text-foreground">Shërbimet</h1>
+          <p className="text-muted-foreground">Menaxho shërbimet dhe çmimet e poliklinikës</p>
         </div>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Service
+          Shto Shërbim
         </Button>
       </div>
 
-      {/* Search */}
       <div className="dashboard-card">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search services..."
+            placeholder="Kërko shërbime…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -46,7 +41,6 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* Services Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredServices.map((service) => (
           <div key={service.id} className="dashboard-card">
@@ -65,9 +59,9 @@ export default function ServicesPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem>{service.isActive ? 'Deactivate' : 'Activate'}</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                  <DropdownMenuItem>Modifiko</DropdownMenuItem>
+                  <DropdownMenuItem>{service.isActive ? 'Çaktivizo' : 'Aktivizo'}</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">Fshi</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -77,7 +71,7 @@ export default function ServicesPage() {
                 <span className="text-sm">{service.duration} min</span>
               </div>
               <div className="flex items-center gap-1.5 text-primary font-semibold">
-                <DollarSign className="h-4 w-4" />
+                <Euro className="h-4 w-4" />
                 <span>{service.price}</span>
               </div>
             </div>
@@ -87,8 +81,8 @@ export default function ServicesPage() {
 
       {filteredServices.length === 0 && (
         <div className="dashboard-card flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-lg font-medium text-foreground">No services found</p>
-          <p className="text-muted-foreground">Try adjusting your search</p>
+          <p className="text-lg font-medium text-foreground">Asnjë shërbim nuk u gjet</p>
+          <p className="text-muted-foreground">Provo të ndryshosh kërkimin</p>
         </div>
       )}
     </div>

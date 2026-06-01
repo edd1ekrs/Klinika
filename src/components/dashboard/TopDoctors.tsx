@@ -17,8 +17,8 @@ export function TopDoctors({ doctors }: TopDoctorsProps) {
   return (
     <div className="dashboard-card">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground">Top Performing Doctors</h3>
-        <p className="text-sm text-muted-foreground">Based on appointment count this month</p>
+        <h3 className="text-lg font-semibold text-foreground">Mjekët me Performancën më të Mirë</h3>
+        <p className="text-sm text-muted-foreground">Sipas numrit të termineve këtë muaj</p>
       </div>
       <div className="space-y-5">
         {doctors.map((item, index) => (
@@ -40,14 +40,14 @@ export function TopDoctors({ doctors }: TopDoctorsProps) {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {item.doctor.firstName} {item.doctor.lastName}
+                    Dr. {item.doctor.firstName} {item.doctor.lastName}
                   </p>
                   <p className="text-sm text-muted-foreground">{item.doctor.specialization}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-foreground">{item.appointmentCount}</p>
-                <p className="text-sm text-muted-foreground">${item.revenue.toLocaleString()}</p>
+                <p className="font-semibold text-foreground">{item.appointmentCount} termine</p>
+                <p className="text-sm text-muted-foreground">€{item.revenue.toLocaleString()}</p>
               </div>
             </div>
             <Progress 
