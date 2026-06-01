@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardPathForRole } from '@/lib/auth-routes';
+import type { Role } from '@/types/clinic';
 import { Activity } from 'lucide-react';
-
-type Role = 'admin' | 'doctor' | 'staff';
 
 interface ProtectedRouteProps {
   allowed?: Role[];
@@ -15,10 +15,10 @@ interface ProtectedRouteProps {
  * localStorage on mount, so refresh keeps the user signed in.
  */
 export function ProtectedRoute({
-  allowed = ['admin', 'doctor', 'staff'],
+  allowed = ['admin', 'doctor'],
   redirectTo = '/login',
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -32,22 +32,12 @@ export function ProtectedRoute({
     );
   }
 
-  if (!user) {
+  if (!token || !user) {
     return <Navigate to={redirectTo} replace state={{ from: location.pathname }} />;
   }
 
-  if (allowed.length > 0 && (!('role' in user) || !allowed.includes(user.role as Role))) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="max-w-md text-center space-y-3">
-          <h1 className="text-2xl font-bold text-foreground">Qasje e ndaluar</h1>
-          <p className="text-muted-foreground">
-            Nuk keni leje për të hyrë në këtë faqe. Ju lutemi kyçuni me një llogari të autorizuar.
-          </p>
-          <Navigate to={redirectTo} replace />
-        </div>
-      </div>
-    );
+  if (allowed.length > 0 && !allowed.includes(user.role)) {
+    return <Navigate to={getDashboardPathForRole(user.role)} replace />;
   }
 
   return <Outlet />;

@@ -12,6 +12,8 @@ const Patient = sequelize.define('Patient', {
   gender: { type: DataTypes.ENUM('male', 'female', 'other'), allowNull: true },
   address: { type: DataTypes.TEXT, allowNull: true },
   blood_type: { type: DataTypes.STRING, allowNull: true },
+  emergency_contact: { type: DataTypes.STRING, allowNull: true },
+  allergies: { type: DataTypes.JSON, allowNull: true },
 }, {
   tableName: 'patients',
   timestamps: true,

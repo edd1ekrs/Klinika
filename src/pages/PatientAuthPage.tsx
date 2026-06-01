@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_DASHBOARD_PATH, PATIENT_DASHBOARD_PATH, getDashboardPathForRole, isStaffRole } from '@/lib/auth-routes';
 
 export default function PatientAuthPage() {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const { user, token, signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,10 @@ export default function PatientAuthPage() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+
+  useEffect(() => {
+    if (token && user) navigate(getDashboardPathForRole(user.role), { replace: true });
+  }, [navigate, token, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +36,10 @@ export default function PatientAuthPage() {
         const u = await signIn(email, password);
         role = u.role;
       }
-      // Role-based redirect: staff roles go to the admin dashboard, patients to booking.
-      if (['admin', 'doctor', 'staff'].includes(role)) {
-        navigate('/dashboard', { replace: true });
+      if (isStaffRole(role as any)) {
+        navigate(ADMIN_DASHBOARD_PATH, { replace: true });
       } else {
-        navigate('/book', { replace: true });
+        navigate(PATIENT_DASHBOARD_PATH, { replace: true });
       }
     } catch (error: any) {
       toast({

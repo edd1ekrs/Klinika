@@ -21,7 +21,6 @@ interface DashboardHeaderProps {
 const roleLabels: Record<string, string> = {
   admin: 'Administrator',
   doctor: 'Mjek',
-  staff: 'Staf',
   patient: 'Pacient',
 };
 
@@ -115,7 +114,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuItem>Cilësimet</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
+            <DropdownMenuItem className="text-destructive" onSelect={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Dil
             </DropdownMenuItem>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Activity, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,23 +7,29 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_DASHBOARD_PATH, getDashboardPathForRole, isStaffRole } from '@/lib/auth-routes';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: string } };
-  const { signIn } = useAuth();
+  const { user, token, signIn, signOut } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    if (token && user) navigate(getDashboardPathForRole(user.role), { replace: true });
+  }, [navigate, token, user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
       const u = await signIn(email, password);
-      if (!['admin', 'doctor', 'staff'].includes(u.role)) {
+      if (!isStaffRole(u.role)) {
+        await signOut();
         toast({
           title: 'Qasje e ndaluar',
           description: 'Kjo llogari nuk ka leje për panelin e administrimit.',
@@ -31,9 +37,10 @@ export default function LoginPage() {
         });
         return;
       }
-      const dest = location.state?.from?.startsWith('/dashboard')
+      
+      const dest = location.state?.from?.startsWith(ADMIN_DASHBOARD_PATH)
         ? location.state.from
-        : '/dashboard';
+        : ADMIN_DASHBOARD_PATH;
       navigate(dest, { replace: true });
     } catch (err: any) {
       toast({
@@ -120,7 +127,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@mediclinic.com"
+                placeholder="admin@polyclinic.com"
                 required
                 className="h-12"
               />
@@ -167,7 +174,7 @@ export default function LoginPage() {
 
           <div className="text-center text-sm text-muted-foreground">
             <p>Të dhënat demo:</p>
-            <p className="font-medium text-foreground">admin@mediclinic.com / password123</p>
+            <p className="font-medium text-foreground">admin@polyclinic.com / admin123</p>
           </div>
         </div>
       </div>

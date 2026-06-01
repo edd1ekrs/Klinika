@@ -1,7 +1,7 @@
 // Medical Clinic Management System - Type Definitions
 // These types mirror the database schema structure
 
-export type Role = 'admin' | 'doctor' | 'staff' | 'patient';
+export type Role = 'admin' | 'doctor' | 'patient';
 
 export interface User {
   id: string;

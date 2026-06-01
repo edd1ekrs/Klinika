@@ -8,7 +8,15 @@ const includeAll = [
   { model: Service, as: 'service' },
 ];
 
-router.get('/', authenticate, authorize('admin', 'staff', 'doctor'), async (req, res) => {
+const privilegedRoles = ['admin', 'doctor'];
+
+const canManageAppointment = async (req, appointment) => {
+  if (privilegedRoles.includes(req.user.role)) return true;
+  const patient = await Patient.findOne({ where: { user_id: req.user.id } });
+  return !!patient && appointment.patient_id === patient.id;
+};
+
+router.get('/', authenticate, authorize('admin', 'doctor'), async (req, res) => {
   try {
     const appointments = await Appointment.findAll({ include: includeAll, order: [['scheduled_at', 'DESC']] });
     res.json(appointments);
@@ -34,9 +42,16 @@ router.get('/my', authenticate, async (req, res) => {
 
 router.post('/', authenticate, async (req, res) => {
   try {
-    const patient = await Patient.findOne({ where: { user_id: req.user.id } });
-    if (!patient) return res.status(400).json({ error: 'Patient profile not found' });
-    const appointment = await Appointment.create({ ...req.body, patient_id: patient.id });
+    let patientId = req.body.patient_id;
+    if (!privilegedRoles.includes(req.user.role)) {
+      const patient = await Patient.findOne({ where: { user_id: req.user.id } });
+      if (!patient) return res.status(400).json({ error: 'Patient profile not found' });
+      patientId = patient.id;
+    }
+    if (!patientId || !req.body.doctor_id || !req.body.service_id || !req.body.scheduled_at) {
+      return res.status(400).json({ error: 'patient_id, doctor_id, service_id and scheduled_at are required' });
+    }
+    const appointment = await Appointment.create({ ...req.body, patient_id: patientId });
     const full = await Appointment.findByPk(appointment.id, { include: includeAll });
     res.status(201).json(full);
   } catch (err) {
@@ -48,6 +63,11 @@ router.put('/:id', authenticate, async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
     if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
+    if (!(await canManageAppointment(req, appointment))) return res.status(403).json({ error: 'Forbidden' });
+    if (!privilegedRoles.includes(req.user.role)) {
+      delete req.body.patient_id;
+      delete req.body.status;
+    }
     await appointment.update(req.body);
     const full = await Appointment.findByPk(appointment.id, { include: includeAll });
     res.json(full);
@@ -60,6 +80,7 @@ router.delete('/:id', authenticate, async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
     if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
+    if (!(await canManageAppointment(req, appointment))) return res.status(403).json({ error: 'Forbidden' });
     await appointment.destroy();
     res.json({ message: 'Appointment deleted' });
   } catch (err) {

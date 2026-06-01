@@ -8,6 +8,11 @@ const Doctor = sequelize.define('Doctor', {
   email: { type: DataTypes.STRING, allowNull: true },
   phone: { type: DataTypes.STRING, allowNull: true },
   specialization: { type: DataTypes.STRING, allowNull: false },
+  license_number: { type: DataTypes.STRING, allowNull: true },
+  bio: { type: DataTypes.TEXT, allowNull: true },
+  consultation_fee: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+  experience_years: { type: DataTypes.INTEGER, defaultValue: 0 },
+  availability_status: { type: DataTypes.ENUM('available', 'busy', 'offline'), defaultValue: 'available' },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
 }, {
   tableName: 'doctors',

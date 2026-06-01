@@ -29,13 +29,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Paneli', end: true, allowed: ['admin', 'doctor', 'staff'] },
-  { to: '/dashboard/patients', icon: Users, label: 'Pacientët', allowed: ['admin', 'doctor', 'staff'] },
-  { to: '/dashboard/doctors', icon: UserCog, label: 'Mjekët', allowed: ['admin'] },
-  { to: '/dashboard/appointments', icon: Calendar, label: 'Terminet', allowed: ['admin', 'doctor', 'staff'] },
-  { to: '/dashboard/services', icon: Stethoscope, label: 'Shërbimet', allowed: ['admin'] },
-  { to: '/dashboard/records', icon: FileText, label: 'Dosjet Mjekësore', allowed: ['admin', 'doctor'] },
-  { to: '/dashboard/settings', icon: Settings, label: 'Cilësimet', allowed: ['admin'] },
+  { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Paneli', end: true, allowed: ['admin', 'doctor'] },
+  { to: '/admin/dashboard/patients', icon: Users, label: 'Pacientët', allowed: ['admin', 'doctor'] },
+  { to: '/admin/dashboard/doctors', icon: UserCog, label: 'Mjekët', allowed: ['admin'] },
+  { to: '/admin/dashboard/appointments', icon: Calendar, label: 'Terminet', allowed: ['admin', 'doctor'] },
+  { to: '/admin/dashboard/services', icon: Stethoscope, label: 'Shërbimet', allowed: ['admin'] },
+  { to: '/admin/dashboard/records', icon: FileText, label: 'Dosjet Mjekësore', allowed: ['admin', 'doctor'] },
+  { to: '/admin/dashboard/settings', icon: Settings, label: 'Cilësimet', allowed: ['admin'] },
 ];
 
 export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps) {

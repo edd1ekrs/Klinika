@@ -87,8 +87,22 @@ export default function BookAppointmentPage() {
       try {
         const [docs, svcs] = await Promise.all([doctorsAPI.getAll(), servicesAPI.getAll()]);
         if (cancelled) return;
-        setDoctors(docs);
-        setServices(svcs);
+        setDoctors(docs.map((d: any) => ({
+          id: d.id,
+          first_name: d.first_name ?? d.firstName ?? '',
+          last_name: d.last_name ?? d.lastName ?? '',
+          specialization: d.specialization ?? '',
+          bio: d.bio ?? null,
+          experience_years: d.experience_years ?? d.experienceYears ?? 0,
+          consultation_fee: d.consultation_fee ?? d.consultationFee ?? 0,
+          photo_url: d.photo_url ?? null,
+        })));
+        setServices(svcs.map((s: any) => ({
+          id: s.id,
+          name: s.name ?? '',
+          price: Number(s.price ?? 0),
+          duration_minutes: Number(s.duration_minutes ?? s.duration ?? 30),
+        })));
       } catch {
         if (cancelled) return;
         // Fallback to mock data so the page works without the backend running.

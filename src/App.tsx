@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import PatientAuthPage from "./pages/PatientAuthPage";
+import PatientDashboardPage from "./pages/PatientDashboardPage";
 import BookAppointmentPage from "./pages/BookAppointmentPage";
 import DashboardHome from "./pages/DashboardHome";
 import PatientsPage from "./pages/PatientsPage";
@@ -16,6 +17,7 @@ import AppointmentsPage from "./pages/AppointmentsPage";
 import ServicesPage from "./pages/ServicesPage";
 import { MedicalRecordsPage, SettingsPage } from "./pages/PlaceholderPages";
 import NotFound from "./pages/NotFound";
+import { getDashboardPathForRole } from "./lib/auth-routes";
 
 const queryClient = new QueryClient();
 
@@ -28,19 +30,27 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Navigate to="/patient" replace />} />
+            <Route path="/" element={<RoleRedirect />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/patient" element={<PatientAuthPage />} />
             <Route path="/book" element={<BookAppointmentPage />} />
+            <Route path="/dashboard" element={<RoleRedirect />} />
+            <Route path="/dashboard/*" element={<RoleRedirect />} />
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-            {/* Protected dashboard routes — staff only */}
-            <Route element={<ProtectedRoute allowed={['admin', 'doctor', 'staff']} />}>
-              <Route path="/dashboard" element={<DashboardLayout />}>
+            {/* Protected patient routes */}
+            <Route element={<ProtectedRoute allowed={['patient']} redirectTo="/patient" />}>
+              <Route path="/patient/dashboard" element={<PatientDashboardPage />} />
+            </Route>
+
+            {/* Protected admin dashboard routes */}
+            <Route element={<ProtectedRoute allowed={['admin', 'doctor']} />}>
+              <Route path="/admin/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardHome />} />
                 <Route
                   path="patients"
                   element={
-                    <RoleGate allowed={['admin', 'doctor', 'staff']}>
+                    <RoleGate allowed={['admin', 'doctor']}>
                       <PatientsPage />
                     </RoleGate>
                   }
@@ -87,6 +97,13 @@ const App = () => (
 import type { ReactNode } from 'react';
 import type { Role } from './types/clinic';
 import { useAuth } from './contexts/AuthContext';
+
+function RoleRedirect() {
+  const { user, token, loading } = useAuth();
+  if (loading) return null;
+  if (!token || !user) return <Navigate to="/patient" replace />;
+  return <Navigate to={getDashboardPathForRole(user.role)} replace />;
+}
 
 function RoleGate({ allowed, children }: { allowed: Role[]; children: ReactNode }) {
   const { user } = useAuth();
