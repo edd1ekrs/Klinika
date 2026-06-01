@@ -195,7 +195,7 @@ export default function BookAppointmentPage() {
               <Activity className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="text-left">
-              <div className="text-lg font-bold text-foreground leading-none">MediClinic</div>
+              <div className="text-lg font-bold text-foreground leading-none">Klinika</div>
               <div className="text-xs text-muted-foreground">Rezervo një termin</div>
             </div>
           </button>

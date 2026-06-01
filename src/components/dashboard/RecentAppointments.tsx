@@ -45,6 +45,11 @@ export function RecentAppointments({ appointments }: RecentAppointmentsProps) {
         </Button>
       </div>
       <div className="space-y-4">
+        {appointments.length === 0 && (
+          <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            Nuk ka termine te fundit.
+          </div>
+        )}
         {appointments.map((appointment) => (
           <div
             key={appointment.id}

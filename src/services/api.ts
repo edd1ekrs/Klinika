@@ -142,6 +142,12 @@ const appointmentPayload = (a: any) => ({
   notes: a.notes,
 });
 
+const notifyAppointmentsChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('appointments:changed'));
+  }
+};
+
 // ─── Auth ───────────────────────────────────────────────────
 export const authAPI = {
   login: async (email: string, password: string) => {
@@ -226,16 +232,51 @@ export const appointmentsAPI = {
   }) => {
     const payload = 'doctor_id' in appointment ? appointment : appointmentPayload(appointment);
     const { data } = await api.post('/appointments', payload);
-    return mapAppointment(data);
+    const mapped = mapAppointment(data);
+    notifyAppointmentsChanged();
+    return mapped;
   },
   update: async (id: string, updates: any) => {
-    const payload = 'doctor_id' in updates || 'status' in updates ? updates : appointmentPayload(updates);
+    const hasSnakeCasePayload = ['patient_id', 'doctor_id', 'service_id', 'scheduled_at', 'duration_minutes'].some((key) => key in updates);
+    const hasCamelCasePayload = ['patientId', 'doctorId', 'serviceId', 'scheduledAt', 'duration'].some((key) => key in updates);
+    const payload = hasSnakeCasePayload ? updates : hasCamelCasePayload ? appointmentPayload(updates) : updates;
     const { data } = await api.put(`/appointments/${id}`, payload);
-    return mapAppointment(data);
+    const mapped = mapAppointment(data);
+    notifyAppointmentsChanged();
+    return mapped;
+  },
+  cancel: async (id: string) => {
+    const { data } = await api.put(`/appointments/${id}/cancel`);
+    const mapped = mapAppointment(data);
+    notifyAppointmentsChanged();
+    return mapped;
   },
   delete: async (id: string) => {
     const { data } = await api.delete(`/appointments/${id}`);
+    notifyAppointmentsChanged();
     return data;
+  },
+};
+
+export const dashboardAPI = {
+  getStats: async () => {
+    const { data } = await api.get('/dashboard/stats');
+    return {
+      totalPatients: Number(data.totalPatients ?? 0),
+      totalDoctors: Number(data.totalDoctors ?? 0),
+      todayAppointments: Number(data.todayAppointments ?? 0),
+      weeklyAppointments: Number(data.weeklyAppointments ?? 0),
+      appointmentsByStatus: (data.appointmentsByStatus ?? []).map((item: any) => ({
+        status: item.status,
+        count: Number(item.count ?? 0),
+      })),
+      recentAppointments: (data.recentAppointments ?? []).map(mapAppointment),
+      topDoctors: (data.topDoctors ?? []).map((item: any) => ({
+        doctor: mapDoctor(item.doctor),
+        appointmentCount: Number(item.appointmentCount ?? 0),
+        revenue: Number(item.revenue ?? 0),
+      })),
+    };
   },
 };
 

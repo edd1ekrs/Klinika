@@ -12,7 +12,7 @@ interface TopDoctorsProps {
 }
 
 export function TopDoctors({ doctors }: TopDoctorsProps) {
-  const maxAppointments = Math.max(...doctors.map((d) => d.appointmentCount));
+  const maxAppointments = Math.max(1, ...doctors.map((d) => d.appointmentCount));
 
   return (
     <div className="dashboard-card">
@@ -21,6 +21,11 @@ export function TopDoctors({ doctors }: TopDoctorsProps) {
         <p className="text-sm text-muted-foreground">Sipas numrit të termineve këtë muaj</p>
       </div>
       <div className="space-y-5">
+        {doctors.length === 0 && (
+          <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            Nuk ka te dhena per mjeket.
+          </div>
+        )}
         {doctors.map((item, index) => (
           <div key={item.doctor.id} className="space-y-3">
             <div className="flex items-center justify-between">

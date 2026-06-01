@@ -23,6 +23,11 @@ export function AppointmentChart({ data }: AppointmentChartProps) {
         <h3 className="text-lg font-semibold text-foreground">Appointments by Status</h3>
         <p className="text-sm text-muted-foreground">Distribution of appointment outcomes</p>
       </div>
+      {total === 0 ? (
+        <div className="flex h-80 items-center justify-center text-sm text-muted-foreground">
+          Nuk ka termine per te shfaqur.
+        </div>
+      ) : (
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -59,6 +64,7 @@ export function AppointmentChart({ data }: AppointmentChartProps) {
           </PieChart>
         </ResponsiveContainer>
       </div>
+      )}
     </div>
   );
 }

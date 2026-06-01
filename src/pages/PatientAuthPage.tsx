@@ -60,7 +60,7 @@ export default function PatientAuthPage() {
             <Activity className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">MediClinic</h1>
+            <h1 className="text-2xl font-bold text-foreground">Klinika</h1>
             <p className="text-sm text-muted-foreground">Portali i Pacientit</p>
           </div>
         </div>

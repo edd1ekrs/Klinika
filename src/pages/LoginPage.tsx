@@ -63,7 +63,7 @@ export default function LoginPage() {
               <Activity className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">MediClinic</h1>
+              <h1 className="text-2xl font-bold">Klinika</h1>
               <p className="text-sm opacity-80">Sistemi i Menaxhimit</p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function LoginPage() {
               <Activity className="h-7 w-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">MediClinic</h1>
+              <h1 className="text-2xl font-bold text-foreground">Klinika</h1>
               <p className="text-sm text-muted-foreground">Sistemi i Menaxhimit</p>
             </div>
           </div>

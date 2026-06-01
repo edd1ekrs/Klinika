@@ -40,6 +40,28 @@ router.get('/my', authenticate, async (req, res) => {
   }
 });
 
+router.put('/:id/cancel', authenticate, async (req, res) => {
+  try {
+    const appointment = await Appointment.findByPk(req.params.id);
+    if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
+
+    const patient = await Patient.findOne({ where: { user_id: req.user.id } });
+    if (!patient || appointment.patient_id !== patient.id) {
+      return res.status(403).json({ error: 'Patients can only cancel their own appointments' });
+    }
+
+    if (appointment.status === 'completed') {
+      return res.status(400).json({ error: 'Completed appointments cannot be cancelled' });
+    }
+
+    await appointment.update({ status: 'cancelled' });
+    const full = await Appointment.findByPk(appointment.id, { include: includeAll });
+    res.json(full);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/', authenticate, async (req, res) => {
   try {
     let patientId = req.body.patient_id;

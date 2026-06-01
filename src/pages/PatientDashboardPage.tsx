@@ -1,10 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, LogOut, Plus, Stethoscope } from 'lucide-react';
+import { Calendar, Clock, LogOut, Plus, Stethoscope, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { appointmentsAPI } from '@/services/api';
 import type { Appointment } from '@/types/clinic';
@@ -15,19 +25,51 @@ export default function PatientDashboardPage() {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [patientAppointments, setPatientAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState<Appointment | null>(null);
+
+  const loadAppointments = useCallback(async () => {
+    setLoading(true);
+    try {
+      setPatientAppointments(await appointmentsAPI.getByPatient());
+    } catch (error: any) {
+      toast({ title: 'Terminet nuk u ngarkuan', description: error?.response?.data?.error || error?.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const appointments = await appointmentsAPI.getByPatient();
-        if (!cancelled) setPatientAppointments(appointments);
-      } catch (error: any) {
-        toast({ title: 'Terminet nuk u ngarkuan', description: error?.response?.data?.error || error?.message, variant: 'destructive' });
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [toast]);
+    void loadAppointments();
+  }, [loadAppointments]);
+
+  const activeAppointments = useMemo(
+    () => patientAppointments.filter((appointment) => !['cancelled', 'no-show'].includes(appointment.status)),
+    [patientAppointments],
+  );
+
+  const nextAppointment = useMemo(() => {
+    const now = new Date();
+    return activeAppointments
+      .filter((appointment) => new Date(appointment.scheduledAt) >= now)
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0];
+  }, [activeAppointments]);
+
+  const cancelAppointment = async () => {
+    if (!cancelling) return;
+    try {
+      const updated = await appointmentsAPI.cancel(cancelling.id);
+      setPatientAppointments((prev) => prev.map((appointment) => appointment.id === updated.id ? updated : appointment));
+      toast({ title: 'Termini u anulua', description: 'Statusi i terminit u ndryshua ne cancelled.' });
+      setCancelling(null);
+    } catch (error: any) {
+      toast({
+        title: 'Anulimi deshtoi',
+        description: error?.response?.data?.error || error?.message || 'Provo perseri.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -67,15 +109,15 @@ export default function PatientDashboardPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm">Termine aktive</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-bold text-foreground">{patientAppointments.length}</CardContent>
+            <CardContent className="text-2xl font-bold text-foreground">{activeAppointments.length}</CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm">Termini i ardhshëm</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-bold text-foreground">{patientAppointments[0] ? format(new Date(patientAppointments[0].scheduledAt), 'd MMM') : '-'}</CardContent>
+            <CardContent className="text-2xl font-bold text-foreground">{nextAppointment ? format(new Date(nextAppointment.scheduledAt), 'd MMM') : '-'}</CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm">Statusi</CardTitle></CardHeader>
-            <CardContent><Badge>{patientAppointments[0]?.status ?? 'Pa termine'}</Badge></CardContent>
+            <CardContent><Badge>{nextAppointment?.status ?? 'Pa termine'}</Badge></CardContent>
           </Card>
         </div>
 
@@ -84,6 +126,10 @@ export default function PatientDashboardPage() {
             <CardTitle>Terminet e mia</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {loading && <p className="text-sm text-muted-foreground">Duke ngarkuar terminet...</p>}
+            {!loading && patientAppointments.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nuk keni termine te regjistruara.</p>
+            )}
             {patientAppointments.map((appointment) => (
               <div key={appointment.id} className="flex flex-col gap-3 rounded-lg border border-border p-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -94,12 +140,34 @@ export default function PatientDashboardPage() {
                   <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {format(new Date(appointment.scheduledAt), 'd MMM yyyy')}</span>
                   <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {format(new Date(appointment.scheduledAt), 'HH:mm')}</span>
                   <Badge variant="outline">{appointment.status}</Badge>
+                  {!['cancelled', 'completed', 'no-show'].includes(appointment.status) && (
+                    <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => setCancelling(appointment)}>
+                      <XCircle className="h-4 w-4" /> Cancel Appointment
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
       </main>
+
+      <AlertDialog open={!!cancelling} onOpenChange={(open) => !open && setCancelling(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel appointment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will mark the appointment as cancelled. It will not be deleted from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anulo</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={cancelAppointment}>
+              Cancel Appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

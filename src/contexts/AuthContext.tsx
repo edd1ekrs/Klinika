@@ -37,8 +37,8 @@ function normalizeUser(raw: any): User {
 
 const demoUsers: Record<string, User> = {
   'admin@polyclinic.com': { id: 'demo-admin', email: 'admin@polyclinic.com', first_name: 'Admin', last_name: 'Polyclinic', role: 'admin' },
-  'doctor@mediclinic.com': { id: 'demo-doctor', email: 'doctor@mediclinic.com', first_name: 'Arben', last_name: 'Berisha', role: 'doctor' },
-  'patient@mediclinic.com': { id: 'demo-patient', email: 'patient@mediclinic.com', first_name: 'Ardit', last_name: 'Krasniqi', role: 'patient' },
+  'doctor@klinika.com': { id: 'demo-doctor', email: 'doctor@klinika.com', first_name: 'Arben', last_name: 'Berisha', role: 'doctor' },
+  'patient@klinika.com': { id: 'demo-patient', email: 'patient@klinika.com', first_name: 'Ardit', last_name: 'Krasniqi', role: 'patient' },
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {

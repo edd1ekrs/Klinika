@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, CheckCircle, Clock, Edit, Filter, MoreHorizontal, Plus, Search, Trash2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { appointmentsAPI, doctorsAPI, patientsAPI, servicesAPI } from '@/services/api';
@@ -57,20 +57,33 @@ export default function AppointmentsPage() {
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [deleting, setDeleting] = useState<Appointment | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [apts, pats, docs, svcs] = await Promise.all([appointmentsAPI.getAll(), patientsAPI.getAll(), doctorsAPI.getAll(), servicesAPI.getAll()]);
-        if (!cancelled) { setAppointments(apts); setPatients(pats); setDoctors(docs); setServices(svcs); }
-      } catch (error: any) {
-        toast({ title: 'Terminet nuk u ngarkuan', description: error?.response?.data?.error || error?.message, variant: 'destructive' });
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [apts, pats, docs, svcs] = await Promise.all([appointmentsAPI.getAll(), patientsAPI.getAll(), doctorsAPI.getAll(), servicesAPI.getAll()]);
+      setAppointments(apts);
+      setPatients(pats);
+      setDoctors(docs);
+      setServices(svcs);
+    } catch (error: any) {
+      toast({ title: 'Terminet nuk u ngarkuan', description: error?.response?.data?.error || error?.message, variant: 'destructive' });
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, [toast]);
+
+  useEffect(() => {
+    void loadData();
+    const refresh = () => void loadData(true);
+    const interval = window.setInterval(refresh, 30000);
+    window.addEventListener('appointments:changed', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('appointments:changed', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [loadData]);
 
   const filteredAppointments = useMemo(() => appointments.filter((apt) => {
     const q = searchQuery.toLowerCase();

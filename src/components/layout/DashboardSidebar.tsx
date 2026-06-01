@@ -56,7 +56,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">MediClinic</span>
+              <span className="text-sm font-semibold text-sidebar-foreground">Klinika</span>
               <span className="text-xs text-sidebar-foreground/60">Sistemi i Menaxhimit</span>
             </div>
           )}
@@ -97,7 +97,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
               Menaxhimi i Poliklinikës v1.0
             </p>
             <p className="mt-1 text-xs text-sidebar-foreground/50">
-              © 2025 MediClinic
+              © 2025 Klinika
             </p>
           </div>
         </div>
