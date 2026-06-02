@@ -29,12 +29,12 @@ const seed = async () => {
       { name: 'X-Ray', description: 'Digital X-ray imaging', price: 100, duration_minutes: 20 },
     ];
     for (const s of services) await Service.findOrCreate({ where: { name: s.name }, defaults: s });
-    console.log('✅ Services seeded');
+    console.log('Services seeded');
 
-    console.log('\n🎉 Done!');
+    console.log('\n Done!');
     process.exit(0);
   } catch (err) {
-    console.error('❌', err.message);
+    console.error('', err.message);
     process.exit(1);
   }
 };
